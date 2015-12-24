@@ -1,0 +1,85 @@
+steganographer -- a program that hides data in other data
+Copyleft Javier Lombillo, 2015; all rights reversed
+
+
+Installation
+------------
+
+Run `make`; steganographer should compile on any reasonable system, though the
+Makefile will need to be edited if you're using a compiler other than gcc.
+
+The resulting binary is called 'steganographer'.
+
+
+Terminology
+-----------
+
+ - steganography   the art and science of hiding information
+ - payload         the data you want to hide
+ - camouflage      the data that will be used to hide the payload
+
+
+Operation
+---------
+
+steganographer hides the payload inside of the camouflage using LSB
+steganography: each bit in the payload is stored in the least-significant bit
+of a byte in the camouflage. Header data is not altered.
+
+
+***** IMPORTANT NOTES *****
+
+1. When hiding data, the size in bytes of the camouflage (not including header
+   data) must be at least 8 times the size of the entire payload. This is an
+   arithmetical consequence of using LSB steganography: 8 bits per byte, so 1
+   payload byte requires 8 camouflage bytes.
+
+2. When recovering hidden data, the size in bytes of the payload must be provided
+   to steganographer. While it is generally possible to store the payload size
+   in the header of a camouflage file (e.g., in the reserved bytes of the
+   bitmap header), doing so would leave a "smoking gun" in plain sight for
+   anyone looking. steganographer was designed to hide data and, as such,
+   security trumps convenience.
+
+3. Steganography is obfuscation, not encryption! Anyone with the time and
+   inclination can recover the hidden data. For best results, encrypt the
+   payload before hiding.
+
+***************************
+
+LSB steganography is particularly well-suited to using raw media files, such as
+bitmaps and WAV files, as camouflage. They tend to be large and have
+well-structured headers, and the logarithmic nature of human perception means
+that changes at the LSB scale are typically imperceptible.
+
+As of version 0.8, steganographer knows how to use the following camouflage:
+
+   * MS Windows bitmap
+     - 24-bit color-depth only
+     - bitmap byte-padding is respected
+
+   * PCM WAV
+     - supports 16-, 24-, or 32-bit WAV files
+
+steganographer was written with extensibility in mind, so adding new
+camouflages should not be painful.
+
+
+Example
+-------
+
+You want to hide a 102,484-byte file named 'private.zip' in a bitmap called
+'america.bmp', storing the resulting bitmap in a file called 'picture.bmp':
+
+    steganographer -H -b america.bmp -p private.zip -o picture.bmp
+
+You email 'picture.bmp' to your friend, who -- by prior arrangement -- knows
+that the hidden file size is 102,484 bytes. She runs
+
+     steganographer -R -b picture.bmp -s 102484 -o private.zip
+
+
+
+Javier Lombillo <javier@asymptotic.org>
+October 2015
+
